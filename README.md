@@ -1,3 +1,3 @@
 # story_app
 
-Submission 1 Intermediate Flutter
+Submission 2 Intermediate Flutter
