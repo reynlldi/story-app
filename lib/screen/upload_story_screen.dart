@@ -2,16 +2,24 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/common/localization.dart';
 import 'package:story_app/common/styles.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/provider/get_all_story_provider.dart';
 import 'package:story_app/provider/upload_story_provider.dart';
 
 class UploadStoryScreen extends StatefulWidget {
   final Function() onUploadComplete;
-  const UploadStoryScreen({super.key, required this.onUploadComplete});
+  final Function(LatLng?, Function(LatLng, String)) onSelectLocation;
+
+  const UploadStoryScreen({
+    super.key,
+    required this.onUploadComplete,
+    required this.onSelectLocation,
+  });
 
   @override
   State<UploadStoryScreen> createState() => _UploadStoryScreenState();
@@ -19,6 +27,8 @@ class UploadStoryScreen extends StatefulWidget {
 
 class _UploadStoryScreenState extends State<UploadStoryScreen> {
   final descriptionController = TextEditingController();
+  LatLng? selectedLocation;
+  String? selectedAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +107,23 @@ class _UploadStoryScreenState extends State<UploadStoryScreen> {
                   backgroundColor: secondaryColor,
                 ),
                 onPressed: () {
+                  _selectLocation();
+                },
+                child: Text(AppLocalizations.of(context)!.selectLocation),
+              ),
+              const SizedBox(height: 16),
+              if (selectedLocation != null)
+                Text(
+                  selectedAddress ??
+                      '${Text(AppLocalizations.of(context)!.locationSelected)}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: secondaryColor,
+                ),
+                onPressed: () {
                   _onUpload();
                 },
                 child: context.watch<UploadStoryProvider>().isUploading
@@ -153,6 +180,7 @@ class _UploadStoryScreenState extends State<UploadStoryScreen> {
     final localizations = AppLocalizations.of(context)!;
     final provider = context.read<UploadStoryProvider>();
     final authProvider = context.read<AuthProvider>();
+    final getAllStory = context.read<GetAllStoryProvider>();
     final imagePath = provider.imagePath;
     final imageFile = provider.imageFile;
     if (imagePath == null || imageFile == null) return;
@@ -174,17 +202,20 @@ class _UploadStoryScreenState extends State<UploadStoryScreen> {
     final bytes = await imageFile.readAsBytes();
     final newBytes = await compute(compressImage, bytes);
 
-    await provider.addStory(
+    final addStoryResponse = await provider.addStory(
       newBytes,
       fileName,
       description,
       token,
+      selectedLocation?.latitude,
+      selectedLocation?.longitude,
     );
 
-    if (provider.addStoryResponse != null) {
+    if (addStoryResponse != null && !addStoryResponse.error) {
       provider.setImageFile(null);
       provider.setImagePath(null);
       descriptionController.clear();
+      await getAllStory.refreshStories(token);
       widget.onUploadComplete();
     }
 
@@ -212,5 +243,17 @@ class _UploadStoryScreenState extends State<UploadStoryScreen> {
             width: double.infinity,
             fit: BoxFit.contain,
           );
+  }
+
+  void _selectLocation() {
+    widget.onSelectLocation(
+      selectedLocation,
+      (LatLng location, String address) {
+        setState(() {
+          selectedLocation = location;
+          selectedAddress = address;
+        });
+      },
+    );
   }
 }

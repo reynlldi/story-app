@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:story_app/common/localization.dart';
 import 'package:story_app/common/styles.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/provider/get_all_story_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function() onLogin;
@@ -144,9 +145,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               final email = emailController.text;
                               final password = passwordController.text;
                               final authRead = context.read<AuthProvider>();
+                              final storyProvider =
+                                  context.read<GetAllStoryProvider>();
                               final success =
                                   await authRead.login(email, password);
                               if (success) {
+                                await storyProvider
+                                    .getAllStory(authRead.token!);
                                 widget.onLogin();
                               } else {
                                 scaffoldMessenger.showSnackBar(

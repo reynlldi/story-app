@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:story_app/data/api/api_service.dart';
-import 'package:story_app/data/model/detail_story_model.dart';
+import 'package:story_app/data/model/response/detail_story_response.dart';
 
 class DetailStoryProvider extends ChangeNotifier {
   final ApiService apiService;
@@ -22,7 +22,7 @@ class DetailStoryProvider extends ChangeNotifier {
       hasError = false;
       notifyListeners();
       getDetailStoryResponse = await apiService.detailStory(id, token);
-      if (getDetailStoryResponse?.story.id.isNotEmpty ?? false) {
+      if (getDetailStoryResponse?.detailStory.id.isNotEmpty ?? false) {
         hasData = true;
       } else {
         hasData = false;

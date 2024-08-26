@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:story_app/data/model/add_story_model.dart';
-import 'package:story_app/data/model/detail_story_model.dart';
-import 'package:story_app/data/model/get_all_story_model.dart';
-import 'package:story_app/data/model/login_story_model.dart';
+import 'package:story_app/data/model/response/add_story_response.dart';
+import 'package:story_app/data/model/response/all_story_response.dart';
+import 'package:story_app/data/model/response/detail_story_response.dart';
+import 'package:story_app/data/model/response/login_story_response.dart';
 import 'package:http/http.dart' as http;
-import 'package:story_app/data/model/register_story_model.dart';
+import 'package:story_app/data/model/response/register_story_response.dart';
 
 class ApiService {
   static const String _baseUrl = "https://story-api.dicoding.dev/v1";
@@ -61,18 +61,21 @@ class ApiService {
     }
   }
 
-  Future<GetAllStoryResponse> getAllStory(
-    String token,
-  ) async {
+  Future<AllStoryResponse> getAllStory(
+    int page,
+    int size,
+    String token, {
+    int location = 0,
+  }) async {
     final response = await http.get(
-      Uri.parse("$_baseUrl/stories"),
+      Uri.parse("$_baseUrl/stories?page=$page&size=$size&location=$location"),
       headers: <String, String>{
         "Authorization": "Bearer $token",
       },
     );
 
     if (response.statusCode == 200) {
-      return GetAllStoryResponse.fromJson(json.decode(response.body));
+      return AllStoryResponse.fromJson(json.decode(response.body));
     } else {
       throw Exception("Something Wrong: List Story Failed");
     }
@@ -101,6 +104,8 @@ class ApiService {
     String fileName,
     String description,
     String token,
+    double? lat,
+    double? lon,
   ) async {
     final uri = Uri.parse("$_baseUrl/stories");
     var request = http.MultipartRequest("POST", uri);
@@ -119,6 +124,11 @@ class ApiService {
       "content-type": "multipart/form-data",
       "Authorization": "Bearer $token",
     };
+
+    if (lat != null && lon != null) {
+      fields["lat"] = lat.toString();
+      fields["lon"] = lon.toString();
+    }
 
     request.files.add(multiPartFile);
     request.fields.addAll(fields);

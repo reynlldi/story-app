@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:story_app/data/api/api_service.dart';
-import 'package:story_app/data/model/get_all_story_model.dart';
+import 'package:story_app/data/model/request/all_story_request.dart';
+import 'package:story_app/data/model/response/all_story_response.dart';
 
 class GetAllStoryProvider extends ChangeNotifier {
   final ApiService apiService;
@@ -8,36 +9,42 @@ class GetAllStoryProvider extends ChangeNotifier {
 
   GetAllStoryProvider({required this.apiService, required String token})
       : _token = token {
-    getAllStory(_token);
+    if (_token.isNotEmpty) {
+      loadInitialStories(_token);
+    }
   }
 
   void update(String token) {
     _token = token;
-    getAllStory(_token);
+    if (_token.isNotEmpty) {
+      loadInitialStories(_token);
+    }
   }
 
   bool isLoading = false;
   bool hasData = false;
   bool hasError = false;
   String message = "";
-  GetAllStoryResponse? getAllStoryResponse;
+  AllStoryResponse? getAllStoryResponse;
+  List<ListStory> allStories = [];
+  int? pageItems = 1;
+  final int sizeItem = 10;
 
-  Future<void> getAllStory(
-    String token,
-  ) async {
+  Future<void> getAllStory(String token) async {
+    if (isLoading || pageItems == null) return;
+
     try {
-      message = "";
       isLoading = true;
-      hasData = false;
-      hasError = false;
       notifyListeners();
-      getAllStoryResponse = await apiService.getAllStory(token);
-      if (getAllStoryResponse?.listStory.isNotEmpty ?? false) {
+
+      final result = await apiService.getAllStory(pageItems!, sizeItem, token);
+      if (result.listStory.isNotEmpty) {
+        allStories.addAll(result.listStory);
         hasData = true;
-      } else {
-        hasData = false;
+        pageItems = result.listStory.length < sizeItem ? null : pageItems! + 1;
       }
-      message = getAllStoryResponse?.message ?? "Success";
+
+      message = "Success";
       isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -46,5 +53,17 @@ class GetAllStoryProvider extends ChangeNotifier {
       message = e.toString();
       notifyListeners();
     }
+  }
+
+  Future<void> loadInitialStories(String token) async {
+    if (allStories.isEmpty && token.isNotEmpty) {
+      await getAllStory(token);
+    }
+  }
+
+  Future<void> refreshStories(String token) async {
+    pageItems = 1;
+    allStories.clear();
+    await getAllStory(token);
   }
 }

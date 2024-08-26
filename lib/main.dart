@@ -7,6 +7,7 @@ import 'package:story_app/db/auth_repository.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/provider/get_all_story_provider.dart';
 import 'package:story_app/provider/localizations_provider.dart';
+import 'package:story_app/provider/maps_provider.dart';
 import 'package:story_app/provider/upload_story_provider.dart';
 import 'package:story_app/routes/my_routes.dart';
 
@@ -33,8 +34,12 @@ class _MyAppState extends State<MyApp> {
       apiService: ApiService(),
       authRepository: authRepository,
     );
-    authProvider.loadToken();
+    _initializeApp();
     myRoutes = MyRoutes(authRepository, authProvider);
+  }
+
+  Future<void> _initializeApp() async {
+    await authProvider.checkLoginStatus();
   }
 
   @override
@@ -50,13 +55,19 @@ class _MyAppState extends State<MyApp> {
             token: "",
           ),
           update: (context, authProvider, getAllStoryProvider) {
-            getAllStoryProvider?.update(authProvider.token ?? "");
+            final newToken = authProvider.token ?? "";
+            getAllStoryProvider?.update(newToken);
             return getAllStoryProvider!;
           },
         ),
         ChangeNotifierProvider(
           create: (context) => UploadStoryProvider(
             ApiService(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MapsProvider(
+            apiService: ApiService(),
           ),
         ),
         ChangeNotifierProvider<LocalizationProvider>(

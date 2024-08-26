@@ -38,5 +38,13 @@
   "errorUploadDescriptionMessage": "Please enter your description",
   "successUploadStoryMessage": "upload story successful and refresh the page",
   "successRegister": "Registration Successful",
-  "changeLanguage": "Change Language"
+  "changeLanguage": "Change Language",
+  "selectLocation": "Select Location",
+  "selectedLocation": "Selected Location",
+  "locationSelected": "Location selected",
+  "mapsScreenTitle" : "Maps Screen",
+  "locationService" : "Location services is not available",
+  "locationPermission" : "Location permission is denied",
+  "confirmLocation" : "Confirm Location",
+  "source" : "Source"
 }

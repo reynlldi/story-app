@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:story_app/data/model/get_all_story_model.dart';
+import 'package:story_app/data/model/request/all_story_request.dart';
 import 'package:story_app/provider/localizations_provider.dart';
 import 'package:story_app/utils/convert_date.dart';
 

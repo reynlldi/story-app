@@ -45,7 +45,7 @@ class DetailScreen extends StatelessWidget {
                 child: ListView(
                   children: [
                     DetailStoryWidget(
-                        detailStory: state.getDetailStoryResponse!.story)
+                        detailStory: state.getDetailStoryResponse!.detailStory)
                   ],
                 ),
               );

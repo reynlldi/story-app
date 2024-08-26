@@ -82,4 +82,15 @@ class AuthProvider extends ChangeNotifier {
     _token = await authRepository.getToken();
     notifyListeners();
   }
+
+  Future<void> checkLoginStatus() async {
+    final loggedIn = await authRepository.isLoggedIn();
+    if (loggedIn) {
+      await loadToken();
+      if (_token != null) {
+        isLoggedIn = true;
+        notifyListeners();
+      }
+    }
+  }
 }

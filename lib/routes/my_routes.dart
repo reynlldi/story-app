@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:story_app/db/auth_repository.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/screen/detail_screen.dart';
 import 'package:story_app/screen/home_screen.dart';
+import 'package:story_app/screen/location_picker_screen.dart';
 import 'package:story_app/screen/login_screen.dart';
+import 'package:story_app/screen/maps_screen.dart';
 import 'package:story_app/screen/register_screen.dart';
 import 'package:story_app/screen/setting_screen.dart';
 import 'package:story_app/screen/splash_screen.dart';
@@ -44,6 +47,10 @@ class MyRoutes extends RouterDelegate
   bool isSetting = false;
   String? selectedStory;
   bool isUploadStory = false;
+  bool isMaps = false;
+  bool isLocationPicker = false;
+  LatLng? initialLocation;
+  Function(LatLng, String)? onLocationSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +72,7 @@ class MyRoutes extends RouterDelegate
         selectedStory = null;
         isSetting = false;
         isUploadStory = false;
+        isMaps = false;
         notifyListeners();
 
         return true;
@@ -103,6 +111,10 @@ class MyRoutes extends RouterDelegate
               isUploadStory = true;
               notifyListeners();
             },
+            onMaps: () {
+              isMaps = true;
+              notifyListeners();
+            },
           ),
         ),
         if (isSetting)
@@ -128,7 +140,31 @@ class MyRoutes extends RouterDelegate
                 isUploadStory = false;
                 notifyListeners();
               },
+              onSelectLocation:
+                  (LatLng? location, Function(LatLng, String) callback) {
+                isLocationPicker = true;
+                initialLocation = location;
+                onLocationSelected = callback;
+                notifyListeners();
+              },
             ),
+          ),
+        if (isLocationPicker)
+          MaterialPage(
+            key: const ValueKey("LocationPickerScreen"),
+            child: LocationPickerScreen(
+              initialLocation: initialLocation,
+              onLocationSelected: (LatLng location, String address) {
+                isLocationPicker = false;
+                onLocationSelected?.call(location, address);
+                notifyListeners();
+              },
+            ),
+          ),
+        if (isMaps)
+          const MaterialPage(
+            key: ValueKey("MapsScreen"),
+            child: MapsScreen(),
           )
       ];
 
